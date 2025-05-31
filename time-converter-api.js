@@ -34,3 +34,21 @@ app.get('/convert', (req, res) => {
 app.listen(port, () => {
   console.log(`API running at http://localhost:${port}`);
 });
+
+app.get('/to-unix', (req, res) => {
+  const iso = req.query.iso;
+  if (!iso) {
+    return res.status(400).json({ error: 'Missing ISO input (e.g. ?iso=2025-05-27T14:00:00Z)' });
+  }
+
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) {
+    return res.status(400).json({ error: 'Invalid ISO 8601 date format' });
+  }
+
+  const unix = Math.floor(date.getTime() / 1000);
+  res.json({
+    input: iso,
+    unix
+  });
+});
