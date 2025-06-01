@@ -53,10 +53,6 @@ app.get('/to-unix', (req, res) => {
   });
 });
 
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
 // /adjust-time ONLY uses what it needs
 function parseTimeString(str) {
   const match = str.match(/(?:(\d+)w)?(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
