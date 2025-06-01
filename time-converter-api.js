@@ -57,34 +57,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Timezone aliases
-const TIMEZONE_ALIASES = {
-  EST: "America/New_York",
-  EDT: "America/New_York",
-  CST: "America/Chicago",
-  CDT: "America/Chicago",
-  MST: "America/Denver",
-  MDT: "America/Denver",
-  PST: "America/Los_Angeles",
-  PDT: "America/Los_Angeles",
-  AEST: "Australia/Sydney",
-  AEDT: "Australia/Sydney",
-  CEST: "Europe/Berlin",
-  CET: "Europe/Berlin",
-  GMT: "Etc/GMT"
-};
-
-// Validate IANA timezone
-function isValidIanaTimezone(tz) {
-  try {
-    Intl.DateTimeFormat(undefined, { timeZone: tz });
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
-
-// Parse add/subtract time string
+// /adjust-time ONLY uses what it needs
 function parseTimeString(str) {
   const match = str.match(/(?:(\d+)w)?(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
   return {
@@ -96,7 +69,6 @@ function parseTimeString(str) {
   };
 }
 
-// Adjust the date
 function adjustDate(date, adjustment, sign = 1) {
   const ms =
     (adjustment.weeks || 0) * 7 * 24 * 60 * 60 * 1000 +
@@ -108,43 +80,16 @@ function adjustDate(date, adjustment, sign = 1) {
   return new Date(date.getTime() + sign * ms);
 }
 
-// Main endpoint
 app.get('/adjust-time', (req, res) => {
-  const { time, add, subtract, timezone } = req.query;
+  const { time, add, subtract } = req.query;
 
   if (!time) {
     return res.status(400).json({ error: 'Missing time query parameter' });
   }
 
-  let originalTimezone = timezone || 'UTC';
-
-  const isValidAlias = Object.hasOwnProperty.call(TIMEZONE_ALIASES, originalTimezone);
-  const isValidGMT = /^GMT[+-]?\d+(\.\d+)?$/.test(originalTimezone);
-  const isValidIana = isValidIanaTimezone(originalTimezone);
-  const isUTC = originalTimezone === 'UTC';
-
-  if (!(isValidAlias || isValidGMT || isValidIana || isUTC)) {
-    return res.status(400).json({
-      error: `Invalid timezone '${originalTimezone}'. Use valid alias like EST, CST, GMT+/-offset, or a valid IANA timezone.`
-    });
-  }
-
-  // Resolve alias or GMT to IANA-compatible format
-  let resolvedTimezone = originalTimezone;
-  if (isValidAlias) {
-    resolvedTimezone = TIMEZONE_ALIASES[originalTimezone];
-  } else if (isValidGMT) {
-    const offset = parseFloat(originalTimezone.replace('GMT', ''));
-    const sign = offset >= 0 ? '+' : '';
-    resolvedTimezone = `UTC${sign}${offset}`;
-  }
-
-  // Parse base time
   const baseDate = new Date(time);
   if (isNaN(baseDate.getTime())) {
-    return res.status(400).json({
-      error: 'Invalid date format. Use something like: May 31, 2025 12:00 PM'
-    });
+    return res.status(400).json({ error: 'Invalid date format. Use something like: May 31, 2025 12:00 PM' });
   }
 
   let resultDate = new Date(baseDate);
@@ -162,16 +107,26 @@ app.get('/adjust-time', (req, res) => {
   res.json({
     input: time,
     adjusted: resultDate.toString(),
-    unix: Math.floor(resultDate.getTime() / 1000),
-    originalTimezone,
-    resolvedTimezone
+    unix: Math.floor(resultDate.getTime() / 1000)
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`API is running on port ${PORT}`);
-});
+// /timezones is totally separate and optional
+const TIMEZONE_ALIASES = {
+  EST: "America/New_York",
+  EDT: "America/New_York",
+  CST: "America/Chicago",
+  CDT: "America/Chicago",
+  MST: "America/Denver",
+  MDT: "America/Denver",
+  PST: "America/Los_Angeles",
+  PDT: "America/Los_Angeles",
+  AEST: "Australia/Sydney",
+  AEDT: "Australia/Sydney",
+  CEST: "Europe/Berlin",
+  CET: "Europe/Berlin",
+  GMT: "Etc/GMT"
+};
 
 app.get('/timezones', (req, res) => {
   res.json({
@@ -181,5 +136,5 @@ app.get('/timezones', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`API running on port ${PORT}`);
 });
