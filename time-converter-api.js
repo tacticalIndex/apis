@@ -164,17 +164,22 @@ app.get('/adjust-time', (req, res) => {
     adjusted: resultDate.toString(),
     unix: Math.floor(resultDate.getTime() / 1000),
     originalTimezone,
-    resolvedTimezone,
-    timezones: [
-      {
-        aliases: TIMEZONE_ALIASES,
-        note: "You can also use IANA timezones like 'Europe/Berlin' or 'Australia/Sydney'. GMT offsets like 'GMT+5' work too."
-      }
-    ]
+    resolvedTimezone
   });
 });
 
 // Start server
 app.listen(PORT, () => {
   console.log(`API is running on port ${PORT}`);
+});
+
+app.get('/timezones', (req, res) => {
+  res.json({
+    aliases: TIMEZONE_ALIASES,
+    note: "You can also use IANA timezones like 'Europe/Berlin' or 'Australia/Sydney'. GMT offsets like 'GMT+5' work too."
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
