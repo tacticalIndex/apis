@@ -31,10 +31,6 @@ app.get('/convert', (req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`API running at http://localhost:${port}`);
-});
-
 app.get('/to-unix', (req, res) => {
   const iso = req.query.iso;
   if (!iso) {
@@ -131,6 +127,6 @@ app.get('/timezones', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`API running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`API running at http://localhost:${port}`);
 });
