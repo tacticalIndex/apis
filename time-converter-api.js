@@ -127,6 +127,41 @@ app.get('/timezones', (req, res) => {
   });
 });
 
+app.get('/duration', (req, res) => {
+  const { start, end } = req.query;
+
+  if (!start || !end) {
+    return res.status(400).json({ error: "Missing 'start' or 'end' query parameter" });
+  }
+
+  const startUnix = parseInt(start, 10);
+  const endUnix = parseInt(end, 10);
+
+  if (isNaN(startUnix) || isNaN(endUnix)) {
+    return res.status(400).json({ error: "Both 'start' and 'end' must be valid Unix timestamps" });
+  }
+
+  const diffSeconds = Math.abs(endUnix - startUnix);
+  const days = Math.floor(diffSeconds / 86400);
+  const hours = Math.floor((diffSeconds % 86400) / 3600);
+  const minutes = Math.floor((diffSeconds % 3600) / 60);
+  const seconds = diffSeconds % 60;
+
+  const formatted = [];
+  if (days) formatted.push(`${days} day(s)`);
+  if (hours) formatted.push(`${hours} hour(s)`);
+  if (minutes) formatted.push(`${minutes} minute(s)`);
+  if (seconds) formatted.push(`${seconds} second(s)`);
+
+  res.json({
+    start: startUnix,
+    end: endUnix,
+    difference_seconds: diffSeconds,
+    breakdown: { days, hours, minutes, seconds },
+    formatted: formatted.join(" ")
+  });
+});
+
 app.listen(port, () => {
   console.log(`API running at http://localhost:${port}`);
 });
