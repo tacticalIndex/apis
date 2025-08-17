@@ -147,18 +147,24 @@ app.get('/duration', (req, res) => {
   const minutes = Math.floor((diffSeconds % 3600) / 60);
   const seconds = diffSeconds % 60;
 
-  const formatted = [];
-  if (days) formatted.push(`${days} day(s)`);
-  if (hours) formatted.push(`${hours} hour(s)`);
-  if (minutes) formatted.push(`${minutes} minute(s)`);
-  if (seconds) formatted.push(`${seconds} second(s)`);
+  // Helper to pad 2-digit numbers
+  const pad = (num) => num.toString().padStart(2, "0");
+
+  // Build formatted string
+  const formattedParts = [];
+  if (days) formattedParts.push(days.toString()); // only if > 0
+  formattedParts.push(pad(hours));   // always show padded
+  formattedParts.push(pad(minutes)); // always show padded
+  formattedParts.push(pad(seconds)); // always show padded
+
+  const formatted = formattedParts.join(":");
 
   res.json({
     start: startUnix,
     end: endUnix,
     difference_seconds: diffSeconds,
     breakdown: { days, hours, minutes, seconds },
-    formatted: formatted.join(" ")
+    formatted
   });
 });
 
